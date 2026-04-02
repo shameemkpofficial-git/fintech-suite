@@ -4,6 +4,8 @@ import { Transaction } from "../../src/providers/FintechProvider";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { TransactionCard } from "@/components/TransactionCard";
 import { ErrorView } from "@/components/ErrorView";
+import { EmptyState } from "@/components/EmptyState";
+import { Button } from "@/components/Button";
 import { Colors, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFintech } from "@/hooks/useFintech";
@@ -115,7 +117,17 @@ export default function Wallet() {
             ) : transactions.length > 0 ? (
               transactions.map(tx => <TransactionCard key={tx.id} transaction={tx} />)
             ) : (
-              <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>No recent activity.</Text>
+              <EmptyState 
+                icon="receipt-outline" 
+                title="No Transactions" 
+                description="You haven't made any payments yet. Tap 'Payments' to get started." 
+              >
+                <Button 
+                  title="Get Started"
+                  onPress={() => router.push("/payments")} 
+                  loading={loading}
+                />
+              </EmptyState>
             )}
           </View>
         </>
