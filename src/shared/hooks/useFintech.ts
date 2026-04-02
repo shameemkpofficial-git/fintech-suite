@@ -1,5 +1,5 @@
-import { getActiveProvider } from "../providers/api";
-import { FintechProvider } from "../providers/FintechProvider";
+import { getActiveProvider } from "@/shared/api/api";
+import { FintechProvider } from "@/shared/api/FintechProvider";
 
 /**
  * Custom hook to access the active Fintech service.

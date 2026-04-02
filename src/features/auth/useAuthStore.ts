@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
-import { encryptData, decryptData } from "../utils/crypto";
+import { encryptData, decryptData } from "@/shared/utils/crypto";
 
 interface AuthState {
   token: string | null;

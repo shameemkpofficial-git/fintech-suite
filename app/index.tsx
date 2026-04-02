@@ -1,5 +1,5 @@
 import { Redirect } from "expo-router";
-import { useAuthStore } from "../src/store/useAuthStore";
+import { useAuthStore } from "@/features/auth";
 import { View, ActivityIndicator } from "react-native";
 
 export default function Index() {
