@@ -1,8 +1,8 @@
-import { MockProvider } from "./MockProvider";
-import { StripeProvider } from "./StripeProvider";
-import { RazorpayProvider } from "./RazorpayProvider";
 import { CustomBackendProvider } from "./CustomBackendProvider";
 import { FintechProvider } from "./FintechProvider";
+import { MockProvider } from "./MockProvider";
+import { RazorpayProvider } from "./RazorpayProvider";
+import { StripeProvider } from "./StripeProvider";
 
 /**
  * Supported Fintech Provider Types.
@@ -19,7 +19,7 @@ export enum ProviderType {
  * Global Configuration for the Active Provider.
  * Read from environment variables (defaults to MOCK).
  */
-const ACTIVE_PROVIDER_TYPE: ProviderType = 
+const ACTIVE_PROVIDER_TYPE: ProviderType =
   (process.env.EXPO_PUBLIC_ACTIVE_PROVIDER as ProviderType) || ProviderType.MOCK;
 
 /**
