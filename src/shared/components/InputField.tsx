@@ -4,16 +4,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing } from '../constants/theme';
 import { useColorScheme } from '../hooks/use-color-scheme';
 
-interface InputFieldProps extends TextInputProps {
+import { componentRegistry } from './ComponentRegistry';
+
+export interface InputFieldProps extends TextInputProps {
   label: string;
   icon?: keyof typeof Ionicons.glyphMap;
 }
 
 /**
- * Standardized Input Component with Icon and Label.
- * Follows the FintechSuite design language.
+ * Base Input Field Implementation.
  */
-export const InputField = ({ label, icon, style, ...props }: InputFieldProps) => {
+export const BaseInputField = ({ label, icon, style, ...props }: InputFieldProps) => {
   const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const themeColors = Colors[colorScheme];
 
@@ -61,3 +62,17 @@ const styles = StyleSheet.create({
     height: '100%' 
   },
 });
+
+/**
+ * Registry-aware InputField Component.
+ */
+export const InputField = (props: InputFieldProps) => {
+  const RegisteredInput = componentRegistry.resolve('InputField') || BaseInputField;
+  return <RegisteredInput {...props} />;
+};
+
+// Auto-register the default implementation
+if (!componentRegistry.resolve('InputField')) {
+  componentRegistry.register({ InputField: BaseInputField });
+}
+

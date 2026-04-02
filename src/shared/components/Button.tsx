@@ -1,6 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator, Animated } from 'react-native';
 
+import { componentRegistry } from './ComponentRegistry';
+
 interface ButtonProps {
   onPress: () => void;
   title: string;
@@ -11,10 +13,10 @@ interface ButtonProps {
 }
 
 /**
- * Premium Button Component with animated feedback.
- * Features: Loading indicator, scaling on press, and consistent themed styles.
+ * Base Button Implementation.
  */
-export const Button = ({ onPress, title, style, textStyle, disabled = false, loading = false }: ButtonProps) => {
+export const BaseButton = ({ onPress, title, style, textStyle, disabled = false, loading = false }: ButtonProps) => {
+
   const scaleAnim = new Animated.Value(1);
 
   const handlePressIn = () => {
@@ -85,3 +87,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
 });
+
+/**
+ * Registry-aware Button Component.
+ * Can be overridden globally via componentRegistry.register({ Button: MyCustomButton })
+ */
+export const Button = (props: ButtonProps) => {
+  const RegisteredButton = componentRegistry.resolve('Button') || BaseButton;
+  return <RegisteredButton {...props} />;
+};
+
+// Auto-register the default implementation if not already set
+if (!componentRegistry.resolve('Button')) {
+  componentRegistry.register({ Button: BaseButton });
+}
+
+
