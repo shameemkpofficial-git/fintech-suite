@@ -1,59 +1,70 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useEffect, useState } from "react";
-import { MockProvider } from "../../src/providers/MockProvider";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, StyleSheet, RefreshControl } from "react-native";
 import { Transaction } from "../../src/providers/FintechProvider";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
+import { TransactionCard } from "@/components/TransactionCard";
 import { Colors, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useFintech } from "@/hooks/useFintech";
 import { Ionicons } from "@expo/vector-icons";
 
+/**
+ * Main Wallet Dashboard.
+ * Displays balance, premium card, and recent transaction history.
+ */
 export default function Wallet() {
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const colorScheme = useColorScheme();
-  const themeColors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+  const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
+  const fintech = useFintech();
+  const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const themeColors = Colors[colorScheme];
 
-  useEffect(() => {
-    Promise.all([
-      MockProvider.getBalance(),
-      MockProvider.getTransactions()
-    ]).then(([bal, txs]) => {
+  const fetchData = useCallback(async () => {
+    try {
+      const [bal, txs] = await Promise.all([
+        fintech.getBalance(),
+        fintech.getTransactions()
+      ]);
       setBalance(bal);
       setTransactions(txs);
-    });
-  }, []);
+    } catch (error) {
+      console.error("Failed to fetch wallet data:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [fintech]);
 
-  const renderTransaction = (item: Transaction) => (
-    <View key={item.id} style={[styles.txCard, { backgroundColor: themeColors.backgroundElement }]}>
-      <View style={[styles.txIcon, { backgroundColor: item.type === 'incoming' ? '#E1F5E1' : '#F5E1E1' }]}>
-        <Ionicons 
-          name={item.type === 'incoming' ? 'arrow-down' : 'arrow-up'} 
-          size={20} 
-          color={item.type === 'incoming' ? '#2E7D32' : '#C62828'} 
-        />
-      </View>
-      <View style={styles.txInfo}>
-        <Text style={[styles.txTo, { color: themeColors.text }]}>{item.to}</Text>
-        <Text style={[styles.txCat, { color: themeColors.textSecondary }]}>{item.category} • {formatDate(item.date)}</Text>
-      </View>
-      <Text style={[styles.txAmount, { color: item.type === 'incoming' ? '#2E7D32' : themeColors.text }]}>
-        {item.type === 'incoming' ? '+' : '-'}₹{item.amount.toLocaleString()}
-      </Text>
-    </View>
-  );
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData();
+  }, [fetchData]);
 
   return (
-    <ScreenWrapper withScroll style={styles.wrapper}>
+    <ScreenWrapper 
+      withScroll 
+      style={styles.wrapper}
+      refreshControl={
+        <RefreshControl 
+          refreshing={refreshing} 
+          onRefresh={onRefresh} 
+          tintColor={themeColors.text}
+        />
+      }
+    >
       <View style={styles.header}>
-        <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>My Balance</Text>
+        <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>Available Balance</Text>
         <Text style={[styles.balance, { color: themeColors.text }]}>₹{balance.toLocaleString()}</Text>
       </View>
 
+      {/* Premium Card UI Component */}
       <View style={[styles.card, { backgroundColor: '#007AFF' }]}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>FintechSuite Premium</Text>
@@ -75,15 +86,20 @@ export default function Wallet() {
         </View>
       </View>
 
+      {/* Transaction History Section */}
       <View style={styles.historyHeader}>
-        <Text style={[styles.historyTitle, { color: themeColors.text }]}>Transaction History</Text>
-        <TouchableOpacity>
-          <Text style={{ color: '#007AFF', fontWeight: '600' }}>See All</Text>
-        </TouchableOpacity>
+        <Text style={[styles.historyTitle, { color: themeColors.text }]}>History</Text>
+        <Text style={{ color: '#007AFF', fontWeight: '600' }}>See All</Text>
       </View>
 
       <View style={styles.listContainer}>
-        {transactions.map(renderTransaction)}
+        {loading ? (
+          <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>Loading history...</Text>
+        ) : transactions.length > 0 ? (
+          transactions.map(tx => <TransactionCard key={tx.id} transaction={tx} />)
+        ) : (
+          <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>No recent activity.</Text>
+        )}
       </View>
     </ScreenWrapper>
   );
@@ -91,6 +107,7 @@ export default function Wallet() {
 
 const styles = StyleSheet.create({
   wrapper: {
+    // Global horizontal padding handled by ScreenWrapper
     paddingTop: Spacing.two,
   },
   header: {
@@ -169,36 +186,11 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     gap: Spacing.two,
-    paddingBottom: 100, // Space for tab bar
+    paddingBottom: 100,
   },
-  txCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.three,
-    borderRadius: 16,
-    marginBottom: Spacing.two,
-  },
-  txIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  txInfo: {
-    flex: 1,
-    marginLeft: Spacing.three,
-  },
-  txTo: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  txCat: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  txAmount: {
-    fontSize: 16,
-    fontWeight: '700',
+  statusText: {
+    textAlign: 'center',
+    marginTop: Spacing.four,
+    fontSize: 14,
   },
 });

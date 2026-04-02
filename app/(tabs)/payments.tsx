@@ -1,35 +1,49 @@
-import { View, TextInput, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-import { useState } from "react";
-import { MockProvider } from "../../src/providers/MockProvider";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { Button } from "@/components/Button";
+import { InputField } from "@/components/InputField";
 import { Colors, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Ionicons } from "@expo/vector-icons";
+import { useFintech } from "@/hooks/useFintech";
 
+/**
+ * Payments Screen.
+ * Allows users to send money via the Fintech Provider.
+ */
 export default function Payments() {
   const [amount, setAmount] = useState("");
   const [to, setTo] = useState("");
   const [loading, setLoading] = useState(false);
-  const colorScheme = useColorScheme();
-  const themeColors = Colors[colorScheme === 'dark' ? 'dark' : 'light'];
+  
+  const fintech = useFintech();
+  const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const themeColors = Colors[colorScheme];
 
   const handleSend = async () => {
     if (!amount || !to) {
-      Alert.alert("Error", "Please enter both recipient and amount");
+      Alert.alert("Input Required", "Please provide a recipient and amount.");
       return;
     }
     
     setLoading(true);
-    const success = await MockProvider.sendMoney(Number(amount), to);
-    setLoading(false);
-    
-    if (success) {
-      Alert.alert("Success", `₹${amount} sent to ${to}`);
-      setAmount("");
-      setTo("");
-    } else {
-      Alert.alert("Failed", "Transaction could not be completed at this time.");
+    try {
+      const numAmount = Number(amount);
+      if (isNaN(numAmount) || numAmount <= 0) throw new Error("Invalid amount.");
+
+      const success = await fintech.sendMoney(numAmount, to);
+      
+      if (success) {
+        Alert.alert("Success", `₹${numAmount} successfully sent to ${to}`);
+        setAmount("");
+        setTo("");
+      } else {
+        Alert.alert("Failed", "Transaction declined. Please try again later.");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "An error occurred during transaction.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,39 +55,28 @@ export default function Payments() {
       >
         <View style={styles.header}>
           <Text style={[styles.title, { color: themeColors.text }]}>Send Money</Text>
-          <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>Instant, secure transfers to anyone.</Text>
+          <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>Safe, instant, and borderless transfers.</Text>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
           <View style={styles.form}>
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: themeColors.textSecondary }]}>Recipient Name or ID</Text>
-              <View style={[styles.inputContainer, { backgroundColor: themeColors.backgroundElement }]}>
-                <Ionicons name="person-outline" size={20} color={themeColors.textSecondary} style={styles.icon} />
-                <TextInput
-                  placeholder="e.g. John Doe"
-                  placeholderTextColor={themeColors.textSecondary}
-                  value={to}
-                  onChangeText={setTo}
-                  style={[styles.input, { color: themeColors.text }]}
-                />
-              </View>
-            </View>
+            <InputField
+              label="Recipient Handle or Name"
+              placeholder="e.g. John Doe"
+              value={to}
+              onChangeText={setTo}
+              icon="person-outline"
+            />
 
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: themeColors.textSecondary }]}>Amount (₹)</Text>
-              <View style={[styles.inputContainer, { backgroundColor: themeColors.backgroundElement }]}>
-                <Ionicons name="cash-outline" size={20} color={themeColors.textSecondary} style={styles.icon} />
-                <TextInput
-                  placeholder="0.00"
-                  placeholderTextColor={themeColors.textSecondary}
-                  value={amount}
-                  onChangeText={setAmount}
-                  keyboardType="numeric"
-                  style={[styles.input, { color: themeColors.text, fontSize: 24, fontWeight: '700' }]}
-                />
-              </View>
-            </View>
+            <InputField
+              label="Transaction Amount (₹)"
+              placeholder="0.00"
+              value={amount}
+              onChangeText={setAmount}
+              keyboardType="numeric"
+              icon="cash-outline"
+              style={styles.amountInput}
+            />
 
             <View style={styles.quickAmounts}>
               {[500, 1000, 2000, 5000].map((val) => (
@@ -88,7 +91,7 @@ export default function Payments() {
             </View>
 
             <Button 
-              title={loading ? "Processing..." : "Send Securely"} 
+              title={loading ? "Processing..." : "Transfer Now"} 
               onPress={handleSend}
               disabled={loading || !amount || !to}
               style={styles.mainButton}
@@ -102,7 +105,7 @@ export default function Payments() {
 
 const styles = StyleSheet.create({
   wrapper: {
-    // Standard horizontal padding is now handled by ScreenWrapper
+    // Global horizontal padding handled by ScreenWrapper
   },
   container: {
     flex: 1,
@@ -114,6 +117,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
+    letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 14,
@@ -125,42 +129,21 @@ const styles = StyleSheet.create({
   form: {
     gap: Spacing.four,
   },
-  inputGroup: {
-    gap: Spacing.two,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginLeft: Spacing.one,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 64,
-    borderRadius: 16,
-    paddingHorizontal: Spacing.three,
-  },
-  icon: {
-    marginRight: Spacing.two,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    height: '100%',
+  amountInput: {
+    fontSize: 24,
+    fontWeight: '700',
   },
   quickAmounts: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: Spacing.one,
+    width: '100%',
   },
   quickBtn: {
     backgroundColor: 'transparent',
     borderWidth: 1,
     borderColor: '#007AFF',
     paddingVertical: 10,
-    width: '22%',
+    width: '23%',
     borderRadius: 12,
   },
   quickBtnText: {

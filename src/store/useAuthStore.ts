@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { persist, createJSONStorage, StateStorage } from "zustand/middleware";
 import * as SecureStore from "expo-secure-store";
+import { create } from "zustand";
+import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
 
 interface AuthState {
   token: string | null;
