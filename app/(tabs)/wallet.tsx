@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, RefreshControl, TouchableOpacity } from "react-
 import { Transaction } from "../../src/providers/FintechProvider";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { TransactionCard } from "@/components/TransactionCard";
+import { ErrorView } from "@/components/ErrorView";
 import { Colors, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFintech } from "@/hooks/useFintech";
+import { useAsync } from "@/hooks/useAsync";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuthStore } from "@/store/useAuthStore";
 import { router } from "expo-router";
@@ -13,48 +15,44 @@ import { router } from "expo-router";
 /**
  * Main Wallet Dashboard.
  * Displays balance, premium card, and recent transaction history.
+ * Implements robust loading, error handling, and retry logic.
  */
 export default function Wallet() {
-  const [balance, setBalance] = useState<number>(0);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const logout = useAuthStore((s) => s.logout);
-
   const fintech = useFintech();
+  const logout = useAuthStore((s) => s.logout);
   const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const themeColors = Colors[colorScheme];
 
-  const fetchData = useCallback(async () => {
-    try {
-      const [bal, txs] = await Promise.all([
-        fintech.getBalance(),
-        fintech.getTransactions()
-      ]);
-      setBalance(bal);
-      setTransactions(txs);
-    } catch (error) {
-      console.error("Failed to fetch wallet data:", error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [fintech]);
+  // Logic for fetching both balance and transactions
+  const fetchDataFn = useCallback(() => Promise.all([
+    fintech.getBalance(),
+    fintech.getTransactions()
+  ]), [fintech]);
+
+  const { execute, loading, error, data } = useAsync(fetchDataFn);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const initialFetch = useCallback(async () => {
+    await execute();
+  }, [execute]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    initialFetch();
+  }, [initialFetch]);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    fetchData();
-  }, [fetchData]);
+    await execute();
+    setRefreshing(false);
+  }, [execute]);
 
   const handleLogout = () => {
     logout();
     router.replace("/(auth)/login");
   };
+
+  const balance = data?.[0] ?? 0;
+  const transactions = data?.[1] ?? [];
 
   return (
     <ScreenWrapper 
@@ -78,50 +76,56 @@ export default function Wallet() {
         <Text style={[styles.balance, { color: themeColors.text }]}>₹{balance.toLocaleString()}</Text>
       </View>
 
-      {/* Premium Card UI Component */}
-      <View style={[styles.card, { backgroundColor: '#007AFF' }]}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>FintechSuite Premium</Text>
-          <Ionicons name="card-outline" size={24} color="#FFF" />
-        </View>
-        <View style={styles.cardNumber}>
-          <Text style={styles.cardDots}>••••  ••••  •••• </Text>
-          <Text style={styles.cardLast}>4242</Text>
-        </View>
-        <View style={styles.cardFooter}>
-          <View>
-            <Text style={styles.cardLabel}>HOLDER</Text>
-            <Text style={styles.cardValue}>SHAMEEM KP</Text>
+      {/* Persistence Error Handling & Retry */}
+      {error ? (
+        <ErrorView message={error} onRetry={execute} />
+      ) : (
+        <>
+          {/* Card Component */}
+          <View style={[styles.card, { backgroundColor: '#007AFF' }]}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>FintechSuite Premium</Text>
+              <Ionicons name="card-outline" size={24} color="#FFF" />
+            </View>
+            <View style={styles.cardNumber}>
+              <Text style={styles.cardDots}>••••  ••••  •••• </Text>
+              <Text style={styles.cardLast}>4242</Text>
+            </View>
+            <View style={styles.cardFooter}>
+              <View>
+                <Text style={styles.cardLabel}>HOLDER</Text>
+                <Text style={styles.cardValue}>SHAMEEM KP</Text>
+              </View>
+              <View style={styles.cardExp}>
+                <Text style={styles.cardLabel}>EXP</Text>
+                <Text style={styles.cardValue}>09/28</Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.cardExp}>
-            <Text style={styles.cardLabel}>EXP</Text>
-            <Text style={styles.cardValue}>09/28</Text>
+
+          {/* Transactions List */}
+          <View style={styles.historyHeader}>
+            <Text style={[styles.historyTitle, { color: themeColors.text }]}>History</Text>
+            <Text style={{ color: '#007AFF', fontWeight: '600' }}>See All</Text>
           </View>
-        </View>
-      </View>
 
-      {/* Transaction History Section */}
-      <View style={styles.historyHeader}>
-        <Text style={[styles.historyTitle, { color: themeColors.text }]}>History</Text>
-        <Text style={{ color: '#007AFF', fontWeight: '600' }}>See All</Text>
-      </View>
-
-      <View style={styles.listContainer}>
-        {loading ? (
-          <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>Loading history...</Text>
-        ) : transactions.length > 0 ? (
-          transactions.map(tx => <TransactionCard key={tx.id} transaction={tx} />)
-        ) : (
-          <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>No recent activity.</Text>
-        )}
-      </View>
+          <View style={styles.listContainer}>
+            {loading && !refreshing ? (
+              <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>Updating your wallet...</Text>
+            ) : transactions.length > 0 ? (
+              transactions.map(tx => <TransactionCard key={tx.id} transaction={tx} />)
+            ) : (
+              <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>No recent activity.</Text>
+            )}
+          </View>
+        </>
+      )}
     </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    // Global horizontal padding handled by ScreenWrapper
     paddingTop: Spacing.two,
   },
   header: {

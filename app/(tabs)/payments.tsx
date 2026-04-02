@@ -3,22 +3,38 @@ import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollVi
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { Button } from "@/components/Button";
 import { InputField } from "@/components/InputField";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { Colors, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFintech } from "@/hooks/useFintech";
+import { useAsync } from "@/hooks/useAsync";
 
 /**
  * Payments Screen.
- * Allows users to send money via the Fintech Provider.
+ * Implements robust transaction handling and status feedback.
  */
 export default function Payments() {
   const [amount, setAmount] = useState("");
   const [to, setTo] = useState("");
-  const [loading, setLoading] = useState(false);
   
   const fintech = useFintech();
   const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const themeColors = Colors[colorScheme];
+
+  // Wrapped transaction logic
+  const sendAction = async (target: string, value: string) => {
+    const numAmount = Number(value);
+    if (isNaN(numAmount) || numAmount <= 0) throw new Error("Please enter a valid amount.");
+    
+    const success = await fintech.sendMoney(numAmount, target);
+    if (success) {
+      setAmount("");
+      setTo("");
+    }
+    return success;
+  };
+
+  const { execute, loading } = useAsync(sendAction);
 
   const handleSend = async () => {
     if (!amount || !to) {
@@ -26,29 +42,22 @@ export default function Payments() {
       return;
     }
     
-    setLoading(true);
     try {
-      const numAmount = Number(amount);
-      if (isNaN(numAmount) || numAmount <= 0) throw new Error("Invalid amount.");
-
-      const success = await fintech.sendMoney(numAmount, to);
-      
+      const success = await execute(to, amount);
       if (success) {
-        Alert.alert("Success", `₹${numAmount} successfully sent to ${to}`);
-        setAmount("");
-        setTo("");
+        Alert.alert("Success", `₹${amount} sent to ${to} successfully.`);
       } else {
-        Alert.alert("Failed", "Transaction declined. Please try again later.");
+        Alert.alert("Failed", "Transaction declined. Please check your balance.");
       }
     } catch (error: any) {
-      Alert.alert("Error", error.message || "An error occurred during transaction.");
-    } finally {
-      setLoading(false);
+      Alert.alert("Transaction Error", error.message || "An error occurred during transfer.");
     }
   };
 
   return (
     <ScreenWrapper withGlassEffect style={styles.wrapper}>
+      <LoadingOverlay visible={loading} />
+      
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
@@ -91,7 +100,7 @@ export default function Payments() {
             </View>
 
             <Button 
-              title={loading ? "Processing..." : "Transfer Now"} 
+              title="Transfer Now" 
               onPress={handleSend}
               disabled={loading || !amount || !to}
               style={styles.mainButton}

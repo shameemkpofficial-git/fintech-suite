@@ -17,9 +17,10 @@ export enum ProviderType {
 
 /**
  * Global Configuration for the Active Provider.
- * Set this to switch between Mock, Stripe, Razorpay, or Custom Backend.
+ * Read from environment variables (defaults to MOCK).
  */
-const ACTIVE_PROVIDER_TYPE: ProviderType = ProviderType.MOCK;
+const ACTIVE_PROVIDER_TYPE: ProviderType = 
+  (process.env.EXPO_PUBLIC_ACTIVE_PROVIDER as ProviderType) || ProviderType.MOCK;
 
 /**
  * Provider Factory.

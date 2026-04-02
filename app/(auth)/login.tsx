@@ -5,37 +5,47 @@ import { router } from "expo-router";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { Button } from "@/components/Button";
 import { InputField } from "@/components/InputField";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 import { Colors, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFintech } from "@/hooks/useFintech";
+import { useAsync } from "@/hooks/useAsync";
 
+/**
+ * Authentication Screen.
+ * Implements standardized loading overlay and robust error handling.
+ */
 export default function Login() {
   const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
-  
   const setToken = useAuthStore((s) => s.setToken);
   const fintech = useFintech();
   
   const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const themeColors = Colors[colorScheme];
 
+  const loginAction = async (phoneNumber: string) => {
+    const res = await fintech.login(phoneNumber);
+    setToken(res.token);
+    router.replace("/wallet");
+    return res;
+  };
+
+  const { execute, loading } = useAsync(loginAction);
+
   const handleLogin = async () => {
     if (phone.length < 10) return;
     
-    setLoading(true);
     try {
-      const res = await fintech.login(phone);
-      setToken(res.token);
-      router.replace("/wallet");
-    } catch (error) {
-      Alert.alert("Login Failed", "Please check your phone number and try again.");
-    } finally {
-      setLoading(false);
+      await execute(phone);
+    } catch (error: any) {
+      Alert.alert("Authentication Error", error.message || "Could not verify your identity. Please try again.");
     }
   };
 
   return (
     <ScreenWrapper withGlassEffect style={styles.wrapper}>
+      <LoadingOverlay visible={loading} />
+      
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -57,7 +67,7 @@ export default function Login() {
             />
             
             <Button 
-              title={loading ? "Authenticating..." : "Get Started"} 
+              title="Get Started"
               onPress={handleLogin} 
               disabled={loading || phone.length < 10}
               style={styles.button}
@@ -71,7 +81,7 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   wrapper: {
-    // Global horizontal padding is handled by ScreenWrapper
+    // Global horizontal padding handled by ScreenWrapper
   },
   container: {
     flex: 1,
