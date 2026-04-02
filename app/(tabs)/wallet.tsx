@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, StyleSheet, RefreshControl } from "react-native";
+import { View, Text, StyleSheet, RefreshControl, TouchableOpacity } from "react-native";
 import { Transaction } from "../../src/providers/FintechProvider";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { TransactionCard } from "@/components/TransactionCard";
@@ -7,6 +7,8 @@ import { Colors, Spacing } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useFintech } from "@/hooks/useFintech";
 import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/store/useAuthStore";
+import { router } from "expo-router";
 
 /**
  * Main Wallet Dashboard.
@@ -17,6 +19,8 @@ export default function Wallet() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const logout = useAuthStore((s) => s.logout);
 
   const fintech = useFintech();
   const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
@@ -47,6 +51,11 @@ export default function Wallet() {
     fetchData();
   }, [fetchData]);
 
+  const handleLogout = () => {
+    logout();
+    router.replace("/(auth)/login");
+  };
+
   return (
     <ScreenWrapper 
       withScroll 
@@ -60,7 +69,12 @@ export default function Wallet() {
       }
     >
       <View style={styles.header}>
-        <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>Available Balance</Text>
+        <View style={styles.headerRow}>
+          <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>Available Balance</Text>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+            <Ionicons name="log-out-outline" size={22} color={themeColors.textSecondary} />
+          </TouchableOpacity>
+        </View>
         <Text style={[styles.balance, { color: themeColors.text }]}>₹{balance.toLocaleString()}</Text>
       </View>
 
@@ -112,6 +126,15 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: Spacing.four,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.one,
+  },
+  logoutBtn: {
+    padding: Spacing.one,
   },
   greeting: {
     fontSize: 16,

@@ -10,9 +10,10 @@ interface ScreenWrapperProps {
   style?: ViewStyle;
   withScroll?: boolean;
   withGlassEffect?: boolean;
+  refreshControl?: any;
 }
 
-export const ScreenWrapper = ({ children, style, withScroll = false, withGlassEffect = false }: ScreenWrapperProps) => {
+export const ScreenWrapper = ({ children, style, withScroll = false, withGlassEffect = false, refreshControl }: ScreenWrapperProps) => {
   const insets = useSafeAreaInsets();
 
   const containerStyle = [
@@ -23,7 +24,7 @@ export const ScreenWrapper = ({ children, style, withScroll = false, withGlassEf
 
   if (withScroll) {
     return (
-      <ScrollView contentContainerStyle={containerStyle}>
+      <ScrollView contentContainerStyle={containerStyle} refreshControl={refreshControl}>
         {children}
       </ScrollView>
     );
