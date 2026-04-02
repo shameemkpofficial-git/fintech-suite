@@ -1,21 +1,25 @@
 import { FintechProvider, Transaction } from "./FintechProvider";
 
-const BASE_URL = "https://api.fintechsuite.example.com"; // Placeholder
+const BASE_URL = "https://api.custombackend.example.com";
 
-export const RealFintechProvider: FintechProvider = {
+/**
+ * Custom Backend Implementation of FintechProvider.
+ * This adapter maps your proprietary API to the the app's clean core interface.
+ */
+export const CustomBackendProvider: FintechProvider = {
   login: async (phone: string) => {
     const response = await fetch(`${BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone }),
     });
-    if (!response.ok) throw new Error("Authentication failed");
+    if (!response.ok) throw new Error("Custom Auth Failed");
     return response.json();
   },
 
   getBalance: async () => {
     const response = await fetch(`${BASE_URL}/account/balance`);
-    if (!response.ok) throw new Error("Failed to fetch balance");
+    if (!response.ok) throw new Error("Custom Balance Fetch Failed");
     const data = await response.json();
     return data.balance;
   },
@@ -31,7 +35,7 @@ export const RealFintechProvider: FintechProvider = {
 
   getTransactions: async (): Promise<Transaction[]> => {
     const response = await fetch(`${BASE_URL}/transactions`);
-    if (!response.ok) throw new Error("Failed to fetch transactions");
+    if (!response.ok) throw new Error("Custom Transaction List Failed");
     return response.json();
   }
 };

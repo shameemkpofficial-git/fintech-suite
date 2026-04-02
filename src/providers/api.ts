@@ -1,14 +1,40 @@
 import { MockProvider } from "./MockProvider";
-import { RealFintechProvider } from "./RealFintechProvider";
+import { StripeProvider } from "./StripeProvider";
+import { RazorpayProvider } from "./RazorpayProvider";
+import { CustomBackendProvider } from "./CustomBackendProvider";
 import { FintechProvider } from "./FintechProvider";
 
-// Toggle this as the default or use an environment variable (process.env.EXPO_PUBLIC_USE_MOCK)
-const USE_MOCK = true;
+/**
+ * Supported Fintech Provider Types.
+ * Easily switch between different services.
+ */
+export enum ProviderType {
+  MOCK = 'MOCK',
+  STRIPE = 'STRIPE',
+  RAZORPAY = 'RAZORPAY',
+  CUSTOM = 'CUSTOM'
+}
 
 /**
- * Access the currently active Fintech Provider implementation.
- * This pattern allows for easy switching between mock and real APIs.
+ * Global Configuration for the Active Provider.
+ * Set this to switch between Mock, Stripe, Razorpay, or Custom Backend.
+ */
+const ACTIVE_PROVIDER_TYPE: ProviderType = ProviderType.MOCK;
+
+/**
+ * Provider Factory.
+ * Returns the implementation based on the active configuration.
  */
 export const getActiveProvider = (): FintechProvider => {
-  return USE_MOCK ? MockProvider : RealFintechProvider;
+  switch (ACTIVE_PROVIDER_TYPE) {
+    case ProviderType.STRIPE:
+      return StripeProvider;
+    case ProviderType.RAZORPAY:
+      return RazorpayProvider;
+    case ProviderType.CUSTOM:
+      return CustomBackendProvider;
+    case ProviderType.MOCK:
+    default:
+      return MockProvider;
+  }
 };
