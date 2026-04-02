@@ -61,7 +61,7 @@ export default function Login() {
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingHorizontal: Spacing.four,
+    // Standard horizontal padding is now handled by ScreenWrapper
   },
   container: {
     flex: 1,

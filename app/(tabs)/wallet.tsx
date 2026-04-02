@@ -91,7 +91,6 @@ export default function Wallet() {
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingHorizontal: Spacing.four,
     paddingTop: Spacing.two,
   },
   header: {

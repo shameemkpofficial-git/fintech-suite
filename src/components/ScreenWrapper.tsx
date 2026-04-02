@@ -17,7 +17,7 @@ export const ScreenWrapper = ({ children, style, withScroll = false, withGlassEf
 
   const containerStyle = [
     styles.container,
-    { paddingTop: insets.top, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right },
+    { paddingTop: insets.top, paddingBottom: insets.bottom, paddingLeft: insets.left + 12, paddingRight: insets.right + 12 },
     style,
   ];
 
@@ -31,7 +31,7 @@ export const ScreenWrapper = ({ children, style, withScroll = false, withGlassEf
 
   if (withGlassEffect) {
     return (
-      <GlassView style={containerStyle} intensity={10}>
+      <GlassView style={containerStyle} glassEffectStyle="regular">
         {children}
       </GlassView>
     );
