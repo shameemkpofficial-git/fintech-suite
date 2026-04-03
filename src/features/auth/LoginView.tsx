@@ -7,12 +7,11 @@ import { ScreenWrapper } from "@/shared/components/ScreenWrapper";
 import { Button } from "@/shared/components/Button";
 import { InputField } from "@/shared/components/InputField";
 import { LoadingOverlay } from "@/shared/components/LoadingOverlay";
-import { Colors, Spacing } from "@/shared/constants/theme";
-import { useColorScheme } from "@/shared/hooks/use-color-scheme";
 import { useFintech } from "@/shared/hooks/useFintech";
 import { useAsync } from "@/shared/hooks/useAsync";
 import { useAuthStore } from "./useAuthStore";
 import { useBiometrics } from "@/shared/hooks/useBiometrics";
+import { useStyles } from "@/shared/hooks/useStyles";
 
 /**
  * LoginView Module.
@@ -22,16 +21,49 @@ import { useBiometrics } from "@/shared/hooks/useBiometrics";
 export const LoginView = () => {
   const { t } = useTranslation();
   const [phone, setPhone] = useState("");
-  const { setToken, lastPhone, _hasHydrated } = useAuthStore((s) => ({
-    setToken: s.setToken,
-    lastPhone: s.lastPhone,
-    _hasHydrated: s._hasHydrated,
-  }));
+  
+  const setToken = useAuthStore((s) => s.setToken);
+  const lastPhone = useAuthStore((s) => s.lastPhone);
+  const _hasHydrated = useAuthStore((s) => s._hasHydrated);
+
   const fintech = useFintech();
   const { isCompatible, isEnrolled, authenticate } = useBiometrics();
   
-  const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const themeColors = Colors[colorScheme];
+  const styles = useStyles((theme) => ({
+    wrapper: {},
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+    },
+    header: {
+      marginBottom: theme.spacing.six,
+      alignItems: 'center',
+    },
+    title: {
+      fontSize: 40,
+      fontWeight: '800',
+      letterSpacing: -0.5,
+      color: theme.colors.text,
+    },
+    subtitle: {
+      fontSize: 16,
+      marginTop: theme.spacing.one,
+      color: theme.colors.textSecondary,
+    },
+    form: {
+      width: '100%',
+    },
+    button: {
+      height: 56,
+      borderRadius: 16,
+      marginTop: theme.spacing.two,
+    },
+    biometricButton: {
+      height: 56,
+      borderRadius: 16,
+      marginTop: theme.spacing.two,
+    },
+  }));
 
   useEffect(() => {
     // Prefill last phone if available
@@ -76,8 +108,8 @@ export const LoginView = () => {
           style={styles.container}
         >
           <View style={styles.header}>
-            <Text style={[styles.title, { color: themeColors.text }]}>{t('auth.title')}</Text>
-            <Text style={[styles.subtitle, { color: themeColors.textSecondary }]}>{t('auth.subtitle')}</Text>
+            <Text style={styles.title}>{t('auth.title', 'Login')}</Text>
+            <Text style={styles.subtitle}>{t('auth.subtitle', 'Safe and secure access.')}</Text>
           </View>
 
           <View style={styles.form}>
@@ -112,39 +144,3 @@ export const LoginView = () => {
     </ScreenWrapper>
   );
 };
-
-const styles = StyleSheet.create({
-  wrapper: {
-    // Global horizontal padding handled by ScreenWrapper
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  header: {
-    marginBottom: Spacing.six,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 40,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 16,
-    marginTop: Spacing.one,
-  },
-  form: {
-    width: '100%',
-  },
-  button: {
-    height: 56,
-    borderRadius: 16,
-    marginTop: Spacing.two,
-  },
-  biometricButton: {
-    height: 56,
-    borderRadius: 16,
-    marginTop: Spacing.two,
-  },
-});

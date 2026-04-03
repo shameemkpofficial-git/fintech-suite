@@ -17,9 +17,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     icon: "./assets/expo.icon",
     supportsTablet: true,
+    bundleIdentifier: "com.shameemkpofficial.FintechSuite",
   },
   
   android: {
+    package: "com.shameemkpofficial.FintechSuite",
     adaptiveIcon: {
       backgroundColor: APP_CONFIG.theme.backgroundLight,
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -46,7 +48,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         }
       }
     ],
-    "expo-secure-store"
+    "expo-secure-store",
+    "expo-font",
+    "expo-image",
+    "expo-web-browser",
+    "expo-localization",
+    "expo-local-authentication"
   ],
   
   updates: {

@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from 'react';
+import { useReducer, useCallback, useRef, useEffect } from 'react';
 
 type AsyncState<T> = {
   loading: boolean;
@@ -38,10 +38,15 @@ export const useAsync = <T>(asyncFunction: (...args: any[]) => Promise<T>) => {
     data: null,
   });
 
+  const fnRef = useRef(asyncFunction);
+  useEffect(() => {
+    fnRef.current = asyncFunction;
+  }, [asyncFunction]);
+
   const execute = useCallback(async (...args: any[]) => {
     dispatch({ type: 'START' });
     try {
-      const response = await asyncFunction(...args);
+      const response = await fnRef.current(...args);
       dispatch({ type: 'SUCCESS', payload: response });
       return response;
     } catch (err: any) {
@@ -49,9 +54,9 @@ export const useAsync = <T>(asyncFunction: (...args: any[]) => Promise<T>) => {
       dispatch({ type: 'FAILURE', payload: message });
       throw err;
     }
-  }, [asyncFunction]);
+  }, []); // Perfectly stable
 
-  const setData = (data: T | null) => dispatch({ type: 'SET_DATA', payload: data });
+  const setData = useCallback((data: T | null) => dispatch({ type: 'SET_DATA', payload: data }), []);
 
   return { 
     execute, 

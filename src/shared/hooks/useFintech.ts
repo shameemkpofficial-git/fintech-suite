@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useAuthStore } from "@/features/auth/useAuthStore";
 import { getActiveProvider } from "@/shared/api/api";
 import { FintechProvider } from "@/shared/api/FintechProvider";
@@ -13,7 +14,7 @@ export const useFintech = (): FintechProvider => {
   const provider = getActiveProvider();
 
   // Proxy the provider to intercept errors (simulating Axios interceptors)
-  return new Proxy(provider, {
+  return useMemo(() => new Proxy(provider, {
     get(target, prop, receiver) {
       const originalMethod = Reflect.get(target, prop, receiver);
 
@@ -33,6 +34,6 @@ export const useFintech = (): FintechProvider => {
       }
       return originalMethod;
     },
-  });
+  }), [provider, logout]);
 };
 

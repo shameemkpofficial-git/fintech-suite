@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import CryptoJS from 'crypto-js';
 
 // Access the encryption key from environment variables.

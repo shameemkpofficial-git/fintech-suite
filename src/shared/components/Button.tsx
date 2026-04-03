@@ -84,7 +84,7 @@ export const BaseButton = ({ onPress, title, style, textStyle, disabled = false,
   };
 
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }]}>
+    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
       <TouchableOpacity
         onPress={onPress}
         onPressIn={handlePressIn}
@@ -95,7 +95,7 @@ export const BaseButton = ({ onPress, title, style, textStyle, disabled = false,
           variant === 'clear' && styles.clear,
           disabled && styles.disabled,
           loading && styles.loading,
-          style
+          { width: '100%' } // Fill the wrapper's width (layout handled by style prop on wrapper)
         ]}
         disabled={disabled || loading}
         activeOpacity={1}
@@ -108,12 +108,18 @@ export const BaseButton = ({ onPress, title, style, textStyle, disabled = false,
             size="small" 
           />
         ) : (
-          <Text style={[
-            styles.text,
-            variant === 'outline' && styles.textOutline,
-            variant === 'clear' && styles.textClear,
-            textStyle
-          ]}>{title}</Text>
+          <Text 
+            numberOfLines={1} 
+            ellipsizeMode="tail"
+            style={[
+              styles.text,
+              variant === 'outline' && styles.textOutline,
+              variant === 'clear' && styles.textClear,
+              textStyle
+            ]}
+          >
+            {title}
+          </Text>
         )}
       </TouchableOpacity>
     </Animated.View>
