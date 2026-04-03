@@ -16,22 +16,24 @@ const deepMerge = (target: any, source: any) => {
   return target;
 };
 
+import APP_CONFIG from '../../../global-config.json';
+
 export const Colors = {
   light: {
     text: '#000000',
-    background: '#ffffff',
+    background: APP_CONFIG.theme.backgroundLight,
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
-    tint: '#007AFF',
+    tint: APP_CONFIG.theme.primaryLight,
   },
   dark: {
     text: '#ffffff',
-    background: '#000000',
+    background: APP_CONFIG.theme.backgroundDark,
     backgroundElement: '#1C1C1E',
     backgroundSelected: '#2C2C2E',
     textSecondary: '#8E8E93',
-    tint: '#007AFF',
+    tint: APP_CONFIG.theme.primaryDark,
   },
 };
 
