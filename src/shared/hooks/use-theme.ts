@@ -3,12 +3,28 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/shared/constants/theme';
-import { useColorScheme } from '@/shared/hooks/use-color-scheme';
+import { Colors, Spacing, Fonts } from '../constants/theme';
+import { useColorScheme } from './use-color-scheme';
 
-export function useTheme() {
+export type AppTheme = {
+  colors: typeof Colors.light;
+  spacing: typeof Spacing;
+  fonts: typeof Fonts;
+  isDark: boolean;
+};
+
+/**
+ * Returns the current application theme, including colors, spacing, and fonts.
+ * Reacts to light/dark mode changes automatically.
+ */
+export function useTheme(): AppTheme {
   const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
+  const themeKey = scheme === 'dark' ? 'dark' : 'light';
 
-  return Colors[theme];
+  return {
+    colors: Colors[themeKey],
+    spacing: Spacing,
+    fonts: Fonts,
+    isDark: themeKey === 'dark',
+  };
 }

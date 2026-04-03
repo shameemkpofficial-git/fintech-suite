@@ -1,7 +1,8 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator, Animated } from 'react-native';
+import { TouchableOpacity, Text, ActivityIndicator, Animated, ViewStyle, TextStyle } from 'react-native';
 
 import { componentRegistry } from './ComponentRegistry';
+import { useStyles } from '../hooks/useStyles';
 
 interface ButtonProps {
   onPress: () => void;
@@ -13,9 +14,38 @@ interface ButtonProps {
 }
 
 /**
- * Base Button Implementation.
+ * Base Button Implementation optimized with useStyles.
  */
 export const BaseButton = ({ onPress, title, style, textStyle, disabled = false, loading = false }: ButtonProps) => {
+  const styles = useStyles((theme) => ({
+    button: {
+      backgroundColor: theme.colors.tint,
+      paddingVertical: theme.spacing.medium,
+      paddingHorizontal: theme.spacing.four,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: theme.colors.tint,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.2,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    disabled: {
+      backgroundColor: theme.isDark ? '#3A3A3C' : '#D1D1D6',
+      shadowOpacity: 0,
+      elevation: 0,
+    },
+    loading: {
+      opacity: 0.8,
+    },
+    text: {
+      color: '#FFFFFF',
+      fontSize: 16,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+    },
+  }));
 
   const scaleAnim = new Animated.Value(1);
 
@@ -46,7 +76,7 @@ export const BaseButton = ({ onPress, title, style, textStyle, disabled = false,
           style
         ]}
         disabled={disabled || loading}
-        activeOpacity={1} // Handled by scale animation
+        activeOpacity={1}
       >
         {loading ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
@@ -57,36 +87,6 @@ export const BaseButton = ({ onPress, title, style, textStyle, disabled = false,
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  disabled: {
-    backgroundColor: '#D1D1D6',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  loading: {
-    opacity: 0.8,
-  },
-  text: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-});
 
 /**
  * Registry-aware Button Component.
