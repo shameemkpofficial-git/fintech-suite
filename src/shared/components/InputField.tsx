@@ -72,7 +72,7 @@ export const InputField = (props: InputFieldProps) => {
 };
 
 // Auto-register the default implementation
-if (!componentRegistry.resolve('InputField')) {
+if (!componentRegistry.has('InputField')) {
   componentRegistry.register({ InputField: BaseInputField });
 }
 

@@ -47,6 +47,13 @@ class ComponentRegistry {
   public resolve<K extends keyof CoreComponents>(name: K): CoreComponents[K] {
     return this.components[name] || this.defaults[name];
   }
+
+  /**
+   * Check if a component is explicitly registered (not a default).
+   */
+  public has<K extends keyof CoreComponents>(name: K): boolean {
+    return !!this.components[name];
+  }
 }
 
 export const componentRegistry = ComponentRegistry.getInstance();

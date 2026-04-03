@@ -47,7 +47,7 @@ export const BaseButton = ({ onPress, title, style, textStyle, disabled = false,
     },
   }));
 
-  const scaleAnim = new Animated.Value(1);
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
@@ -77,6 +77,8 @@ export const BaseButton = ({ onPress, title, style, textStyle, disabled = false,
         ]}
         disabled={disabled || loading}
         activeOpacity={1}
+        testID="base-button"
+        accessibilityRole="button"
       >
         {loading ? (
           <ActivityIndicator color="#FFFFFF" size="small" />
@@ -97,9 +99,7 @@ export const Button = (props: ButtonProps) => {
   return <RegisteredButton {...props} />;
 };
 
-// Auto-register the default implementation if not already set
-if (!componentRegistry.resolve('Button')) {
+// Auto-register the default implementation if nothing is registered yet
+if (!componentRegistry.has('Button')) {
   componentRegistry.register({ Button: BaseButton });
 }
-
-

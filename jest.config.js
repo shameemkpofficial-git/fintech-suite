@@ -4,9 +4,10 @@ module.exports = {
   ...expoPreset,
   watchman: false,
   transform: {
-    ...expoPreset.transform,
-    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+    '^.+\\.(js|jsx|ts|tsx|mjs)$': 'babel-jest',
   },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'native.ts', 'native.tsx', 'native.js'],
+  setupFiles: ['<rootDir>/jest-setup.js'],
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@testing-library/react-native|expo-.*|@expo/.*|@react-native/.*)',
   ],
@@ -20,6 +21,7 @@ module.exports = {
   ],
   coverageReporters: ['json', 'lcov', 'text', 'clover', 'html'],
   moduleNameMapper: {
+    '\\.css$': '<rootDir>/__mocks__/styleMock.js',
     ...expoPreset.moduleNameMapper,
     '^@/(.*)$': '<rootDir>/src/$1',
   },
