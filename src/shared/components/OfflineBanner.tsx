@@ -42,7 +42,7 @@ export const OfflineBanner = () => {
       tension: 20,
       friction: 7,
     }).start();
-  }, [isConnected]);
+  }, [isConnected, slideAnim]);
 
   return (
     <Animated.View style={[

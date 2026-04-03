@@ -2,6 +2,7 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import APP_CONFIG from '../../global-config.json';
 
 /**
  * Deep merge utility for theme objects.
@@ -16,7 +17,6 @@ const deepMerge = (target: any, source: any) => {
   return target;
 };
 
-import APP_CONFIG from '../../global-config.json';
 
 export const Colors = {
   light: {

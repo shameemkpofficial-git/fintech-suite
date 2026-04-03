@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useCallback } from 'react';
 import * as Updates from 'expo-updates';
 import { Alert } from 'react-native';
 
@@ -42,7 +42,7 @@ export const useUpdates = () => {
   /**
    * Checks if an update is available on the server.
    */
-  const checkForUpdate = async () => {
+  const checkForUpdate = useCallback(async () => {
     if (__DEV__) {
       console.log('OTA updates are disabled in development mode.');
       return false;
@@ -65,12 +65,12 @@ export const useUpdates = () => {
       dispatch({ type: 'SET_ERROR', payload: error.message });
     }
     return false;
-  };
+  }, []);
 
   /**
    * Downloads the available update.
    */
-  const downloadUpdate = async () => {
+  const downloadUpdate = useCallback(async () => {
     if (state.status !== 'AVAILABLE') return;
 
     try {
@@ -82,12 +82,12 @@ export const useUpdates = () => {
       dispatch({ type: 'SET_ERROR', payload: error.message });
       Alert.alert('Update Failed', 'An error occurred while downloading the update.');
     }
-  };
+  }, [state.status]);
 
   /**
    * Restarts the app to apply the downloaded update.
    */
-  const applyUpdate = async () => {
+  const applyUpdate = useCallback(async () => {
     if (state.status !== 'READY') return;
 
     try {
@@ -96,12 +96,12 @@ export const useUpdates = () => {
       console.error('Error applying update:', error);
       Alert.alert('Restart Failed', 'Please close and reopen the app manually.');
     }
-  };
+  }, [state.status]);
 
   /**
    * Combined function to check, download and prompt for restart.
    */
-  const handleUpdateFlow = async () => {
+  const handleUpdateFlow = useCallback(async () => {
     const available = await checkForUpdate();
     if (available) {
       Alert.alert(
@@ -126,14 +126,14 @@ export const useUpdates = () => {
         ]
       );
     }
-  };
+  }, [checkForUpdate, downloadUpdate, applyUpdate]);
 
   useEffect(() => {
     // Automatically check for updates on mount if not in dev
     if (!__DEV__) {
       handleUpdateFlow();
     }
-  }, []);
+  }, [handleUpdateFlow]);
 
   return {
     status: state.status,

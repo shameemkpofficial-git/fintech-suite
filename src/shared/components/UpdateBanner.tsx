@@ -61,7 +61,7 @@ export const UpdateBanner = () => {
       tension: 20,
       friction: 7,
     }).start();
-  }, [isVisible]);
+  }, [isVisible, slideAnim]);
 
   if (!isVisible) return null;
 

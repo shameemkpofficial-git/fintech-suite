@@ -18,11 +18,11 @@ export interface SuiteModule {
   /**
    * A module can provide custom widgets for the dashboard.
    */
-  widgets?: Array<{
+  widgets?: {
     id: string;
     title: string;
     component: ReactNode;
-  }>;
+  }[];
 }
 
 /**

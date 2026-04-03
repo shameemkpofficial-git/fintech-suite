@@ -4,13 +4,11 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { ScreenWrapper } from "@/shared/components/ScreenWrapper";
-import { ErrorView } from "@/shared/components/ErrorView";
 import { EmptyState } from "@/shared/components/EmptyState";
 import { Button } from "@/shared/components/Button";
 import { Colors, Spacing } from "@/shared/constants/theme";
 import { useColorScheme } from "@/shared/hooks/use-color-scheme";
 import { useFintech } from "@/shared/hooks/useFintech";
-import { useAsync } from "@/shared/hooks/useAsync";
 import { useAuthStore } from "@/features/auth/useAuthStore";
 import { useSafeRequest } from "@/shared/hooks/useSafeRequest";
 import { OfflineBanner } from "@/shared/components/OfflineBanner";
@@ -64,7 +62,6 @@ export const WalletView = () => {
   };
 
   const isLoading = loadingBalance || loadingTransactions;
-  const hasError = false; // We can handle specific errors if needed
 
   return (
     <ScreenWrapper 
