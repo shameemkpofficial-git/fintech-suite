@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { AppState, View, StyleSheet, Animated, AppStateStatus } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AppState, View, StyleSheet, Animated, AppStateStatus, Platform } from 'react-native';
 import { GlassView } from 'expo-glass-effect';
+import * as ScreenCapture from 'expo-screen-capture';
 import { useStyles } from '../hooks/useStyles';
 import { ThemedText } from './themed-text';
 
@@ -8,10 +9,18 @@ import { ThemedText } from './themed-text';
  * AppBlurGuard hides the app's content when it moves to the background or becomes inactive.
  * This is a standard security feature for Fintech apps to prevent sensitive data from
  * being visible in the app switcher.
+ * 
+ * NOTE: For Android, we keep the overlay always mounted with 0 opacity to ensure
+ * it captured by the system snapshot immediately when the app moves to background.
  */
 export const AppBlurGuard = ({ children }: { children: React.ReactNode }) => {
-  const [shouldBlur, setShouldBlur] = useState(false);
+  // Use the official expo library to secure the screen on Android (FLAG_SECURE)
+  // and iOS. This prevents screenshots and hides content in the task switcher.
+  ScreenCapture.usePreventScreenCapture();
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [isVisible, setIsVisible] = useState(false);
+  
   const styles = useStyles((theme) => ({
     container: {
       flex: 1,
@@ -39,34 +48,46 @@ export const AppBlurGuard = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const handleAppStateChange = (nextAppState: AppStateStatus) => {
-    // Blur when moving away from 'active'
-    if (nextAppState === 'inactive' || nextAppState === 'background') {
-      setShouldBlur(true);
+    const isBackgrounding = nextAppState === 'inactive' || nextAppState === 'background';
+    
+    if (isBackgrounding) {
+      setIsVisible(true);
+      // On Android, we need it to be instant to catch the snapshot
+      const duration = Platform.OS === 'android' ? 0 : 200;
+      
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 200,
+        duration,
         useNativeDriver: true,
       }).start();
     } else if (nextAppState === 'active') {
-      // Unblur when returning to 'active'
       Animated.timing(fadeAnim, {
         toValue: 0,
-        duration: 200,
+        duration: 250,
         useNativeDriver: true,
-      }).start(() => setShouldBlur(false));
+      }).start(() => setIsVisible(false));
     }
   };
 
   return (
     <View style={styles.container}>
       {children}
-      {shouldBlur && (
-        <Animated.View style={[styles.overlay, { opacity: fadeAnim }]}>
-          <GlassView style={StyleSheet.absoluteFillObject} glassEffectStyle="regular" />
-          <ThemedText style={styles.logoText}>FINTECH SUITE</ThemedText>
-          <ThemedText type="small" style={{ marginTop: 10 }}>Secure Session</ThemedText>
-        </Animated.View>
-      )}
+      <Animated.View 
+        pointerEvents={isVisible ? 'auto' : 'none'}
+        style={[
+          styles.overlay, 
+          { 
+            opacity: fadeAnim,
+            // Prevent any visibility if not active to save resources, but keep in tree
+            transform: [{ scale: isVisible ? 1 : 0.95 }] 
+          }
+        ]}
+      >
+        <GlassView style={StyleSheet.absoluteFillObject} glassEffectStyle="regular" />
+        <ThemedText style={styles.logoText}>FINTECH SUITE</ThemedText>
+        <ThemedText type="small" style={{ marginTop: 10 }}>Secure Session</ThemedText>
+      </Animated.View>
     </View>
   );
 };
+

@@ -1,56 +1,80 @@
-# Welcome to your Expo app 👋
+# Fintech Suite 💎
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A premium, modular, and security-hardened financial application built with **React Native & Expo**. Designed for high-end performance, resilience, and real-world fintech requirements.
 
-## Get started
+[![Expo SDK](https://img.shields.io/badge/Expo-SDK_55-blue.svg)](https://expo.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![Performance](https://img.shields.io/badge/Performance-Optimized-green.svg)](https://reactnative.dev)
 
-1. Install dependencies
+## 🚀 Key Features
 
+- 🏗️ **Plug-n-Play Architecture**: Feature-based modularity using Component & Module Registries.
+- 🔒 **Military-Grade Security**: AES-256 local storage encryption and secure biometric authentication.
+- 🌐 **Global Reach**: Full i18n support with persistence and automatic device language detection.
+- 📶 **Resilient Data**: `useSafeRequest` hook with offline fallback, exponential backoff retries, and local caching.
+- ✨ **Premium Aesthetics**: High-end glassmorphism, Reanimated-driven micro-interactions, and a custom theme-aware `useStyles` design system.
+
+---
+
+## 🛠️ Technology Stack
+
+- **Core**: React Native (Expo SDK 55), Expo Router
+- **State**: Zustand (Persisted & Encrypted)
+- **Styling**: Custom `useStyles` Hook (Stable & Memoized), Vanilla CSS
+- **Security**: AES-256 (Crypto-JS), Expo SecureStore, Local Authentication
+- **Internationalization**: i18next, react-i18next
+- **Animations**: React Native Reanimated, Expo Symbols
+
+---
+
+## 📁 Project Structure
+
+```text
+├── app/                  # File-based routing (Expo Router)
+├── src/
+│   ├── features/         # Isolated feature modules (Auth, Wallet, Payments)
+│   ├── shared/
+│   │   ├── api/          # Provider abstraction & interceptors
+│   │   ├── components/   # Registry-aware UI components
+│   │   ├── hooks/        # Foundational hooks (useStyles, useSafeRequest)
+│   │   ├── constants/    # Global Theme tokens (Colors, Spacing)
+│   │   ├── i18n/         # Multi-language configuration
+│   │   └── utils/        # Crypto, random values, and helpers
+└── assets/               # Branding & visual assets
+```
+
+---
+
+## 📦 Getting Started
+
+### 🔌 Prerequisites
+- Node.js & npm/yarn
+- Expo CLI (`npm install -g expo-cli`)
+- Android Studio / iOS Simulator (for native features)
+
+### 🛠️ Installation
+1. **Clone & Install**:
    ```bash
    npm install
    ```
+2. **Environment**:
+   Set `EXPO_PUBLIC_ENCRYPTION_KEY` in your `.env` file for AES-256 operations.
 
-2. Start the app
-
+3. **Prebuild & Start**:
    ```bash
-   npx expo start
+   npx expo prebuild   # Generates native project files
+   npm run android     # or npm run ios
    ```
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📖 In-Depth Documentation
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- 🗺️ **[Architecture Overview](file:///Users/shameem/Documents/FintechSuite/docs/ARCHITECTURE.md)**
+- 🔐 **[Security & Resilience](file:///Users/shameem/Documents/FintechSuite/docs/SECURITY.md)**
+- 🎨 **[Design System & Styling](file:///Users/shameem/Documents/FintechSuite/docs/STYLING.md)**
 
-## Get a fresh project
+---
 
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🤝 Contributing
+Fintech Suite is designed to be easily extensible. Learn how to add new modules in our **[Architecture Guide](file:///Users/shameem/Documents/FintechSuite/docs/ARCHITECTURE.md)**.
