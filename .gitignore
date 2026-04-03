@@ -40,5 +40,12 @@ yarn-error.*
 app-example
 
 # generated native folders
-/ios
 /android
+/ios
+
+# Jest / testing
+/coverage/
+/test_output.txt
+/jest.minimal.config.js
+/npm-cache/
+/npm-cache-local/

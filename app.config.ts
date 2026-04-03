@@ -1,5 +1,6 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
-import APP_CONFIG from './global-config.json';
+import APP_CONFIG from './src/global-config.json';
+
 
 
 

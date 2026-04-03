@@ -16,7 +16,7 @@ const deepMerge = (target: any, source: any) => {
   return target;
 };
 
-import APP_CONFIG from '../../../global-config.json';
+import APP_CONFIG from '../../global-config.json';
 
 export const Colors = {
   light: {
