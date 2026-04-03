@@ -13,6 +13,17 @@ A premium, modular, and security-hardened financial application built with **Rea
 - 🌐 **Global Reach**: Full i18n support with persistence and automatic device language detection.
 - 📶 **Resilient Data**: `useSafeRequest` hook with offline fallback, exponential backoff retries, and local caching.
 - ✨ **Premium Aesthetics**: High-end glassmorphism, Reanimated-driven micro-interactions, and a custom theme-aware `useStyles` design system.
+- 🛡️ **Privacy Guard**: Native `FLAG_SECURE` integration to mask sensitive data in the Android/iOS task switcher.
+
+---
+
+## 🔒 Security & Privacy Spotlight
+
+### **AppBlurGuard**
+A cross-platform drop-in component that secures your app's visibility in the background.
+- ✨ **Zero-Latency Masking**: Always-mounted overlay for instant privacy.
+- 🔐 **Native Protection**: Leverages `expo-screen-capture` to prevent unauthorized screenshots and task-switcher leaks.
+- 🎨 **Gaussian Blur**: Implements a high-end blur effect for iOS while enforcing strict native security on Android.
 
 ---
 
