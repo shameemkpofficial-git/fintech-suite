@@ -5,8 +5,10 @@ import { encryptData, decryptData } from "@/shared/utils/crypto";
 
 interface AuthState {
   token: string | null;
-  setToken: (token: string) => void;
+  expiresAt: number | null;
+  setToken: (token: string, expiresInMs?: number) => void;
   logout: () => void;
+  isTokenExpired: () => boolean;
   _hasHydrated: boolean;
   setHasHydrated: (state: boolean) => void;
 }
@@ -33,14 +35,25 @@ const secureStorage: StateStorage = {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
+      expiresAt: null,
       _hasHydrated: false,
 
-      setToken: (token) => set({ token }),
-      logout: () => set({ token: null }),
+      setToken: (token, expiresInMs = 24 * 60 * 60 * 1000) => 
+        set({ token, expiresAt: Date.now() + expiresInMs }),
+      
+      logout: () => set({ token: null, expiresAt: null }),
+      
+      isTokenExpired: () => {
+        const { token, expiresAt } = get();
+        if (!token || !expiresAt) return true;
+        return Date.now() > expiresAt;
+      },
+
       setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
+
     {
       name: "auth-storage",
       storage: createJSONStorage(() => secureStorage),

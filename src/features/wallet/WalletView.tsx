@@ -12,12 +12,13 @@ import { useColorScheme } from "@/shared/hooks/use-color-scheme";
 import { useFintech } from "@/shared/hooks/useFintech";
 import { useAsync } from "@/shared/hooks/useAsync";
 import { useAuthStore } from "@/features/auth/useAuthStore";
+import { useSafeRequest } from "@/shared/hooks/useSafeRequest";
+import { OfflineBanner } from "@/shared/components/OfflineBanner";
 import { TransactionCard } from "./components/TransactionCard";
 
 /**
  * WalletView Module.
  * Self-contained logic for the financial dashboard.
- * Can be easily integrated into any screen or navigation structure.
  */
 export const WalletView = () => {
   const fintech = useFintech();
@@ -25,35 +26,45 @@ export const WalletView = () => {
   const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const themeColors = Colors[colorScheme];
 
-  const fetchDataFn = useCallback(() => Promise.all([
-    fintech.getBalance(),
-    fintech.getTransactions()
-  ]), [fintech]);
+  // Resilient data fetching with offline fallback and retries
+  const { 
+    execute: fetchBalance, 
+    data: balance, 
+    loading: loadingBalance, 
+    isOfflineData: isBalanceOffline 
+  } = useSafeRequest(fintech.getBalance, { cacheKey: 'balance' });
 
-  const { execute, loading, error, data } = useAsync(fetchDataFn);
+  const { 
+    execute: fetchTransactions, 
+    data: transactions = [], 
+    loading: loadingTransactions, 
+    isOfflineData: isTxOffline 
+  } = useSafeRequest(fintech.getTransactions, { cacheKey: 'transactions' });
+
   const [refreshing, setRefreshing] = useState(false);
 
-  const initialFetch = useCallback(async () => {
-    await execute();
-  }, [execute]);
+  const refreshAll = useCallback(async () => {
+    await Promise.all([fetchBalance(), fetchTransactions()]);
+  }, [fetchBalance, fetchTransactions]);
 
   useEffect(() => {
-    initialFetch();
-  }, [initialFetch]);
+    refreshAll();
+  }, [refreshAll]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await execute();
+    await refreshAll();
     setRefreshing(false);
-  }, [execute]);
+  }, [refreshAll]);
+
 
   const handleLogout = () => {
     logout();
     router.replace("/(auth)/login");
   };
 
-  const balance = data?.[0] ?? 0;
-  const transactions = data?.[1] ?? [];
+  const isLoading = loadingBalance || loadingTransactions;
+  const hasError = false; // We can handle specific errors if needed
 
   return (
     <ScreenWrapper 
@@ -67,69 +78,78 @@ export const WalletView = () => {
         />
       }
     >
+      <OfflineBanner />
+      
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>Available Balance</Text>
+          <View style={styles.statusRow}>
+            <Text style={[styles.greeting, { color: themeColors.textSecondary }]}>Available Balance</Text>
+            {isBalanceOffline && (
+              <View style={styles.offlineBadge}>
+                <Text style={styles.offlineBadgeText}>OFFLINE</Text>
+              </View>
+            )}
+          </View>
           <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
             <Ionicons name="log-out-outline" size={22} color={themeColors.textSecondary} />
           </TouchableOpacity>
         </View>
-        <Text style={[styles.balance, { color: themeColors.text }]}>₹{balance.toLocaleString()}</Text>
+        <Text style={[styles.balance, { color: themeColors.text }]}>
+          ₹{(balance ?? 0).toLocaleString()}
+        </Text>
       </View>
 
-      {error ? (
-        <ErrorView message={error} onRetry={execute} />
-      ) : (
-        <>
-          <View style={[styles.card, { backgroundColor: '#007AFF' }]}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>FintechSuite Premium</Text>
-              <Ionicons name="card-outline" size={24} color="#FFF" />
-            </View>
-            <View style={styles.cardNumber}>
-              <Text style={styles.cardDots}>••••  ••••  •••• </Text>
-              <Text style={styles.cardLast}>4242</Text>
-            </View>
-            <View style={styles.cardFooter}>
-              <View>
-                <Text style={styles.cardLabel}>HOLDER</Text>
-                <Text style={styles.cardValue}>SHAMEEM KP</Text>
-              </View>
-              <View style={styles.cardExp}>
-                <Text style={styles.cardLabel}>EXP</Text>
-                <Text style={styles.cardValue}>09/28</Text>
-              </View>
-            </View>
+      <View style={[styles.card, { backgroundColor: '#007AFF' }]}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.cardTitle}>FintechSuite Premium</Text>
+          <Ionicons name="card-outline" size={24} color="#FFF" />
+        </View>
+        <View style={styles.cardNumber}>
+          <Text style={styles.cardDots}>••••  ••••  •••• </Text>
+          <Text style={styles.cardLast}>4242</Text>
+        </View>
+        <View style={styles.cardFooter}>
+          <View>
+            <Text style={styles.cardLabel}>HOLDER</Text>
+            <Text style={styles.cardValue}>SHAMEEM KP</Text>
           </View>
+          <View style={styles.cardExp}>
+            <Text style={styles.cardLabel}>EXP</Text>
+            <Text style={styles.cardValue}>09/28</Text>
+          </View>
+        </View>
+      </View>
 
-          <View style={styles.historyHeader}>
-            <Text style={[styles.historyTitle, { color: themeColors.text }]}>History</Text>
-            <Text style={{ color: '#007AFF', fontWeight: '600' }}>See All</Text>
-          </View>
+      <View style={styles.historyHeader}>
+        <View style={styles.statusRow}>
+          <Text style={[styles.historyTitle, { color: themeColors.text }]}>History</Text>
+          {isTxOffline && <Ionicons name="cloud-offline" size={16} color={themeColors.textSecondary} />}
+        </View>
+        <Text style={{ color: '#007AFF', fontWeight: '600' }}>See All</Text>
+      </View>
 
-          <View style={styles.listContainer}>
-            {loading && !refreshing ? (
-              <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>Updating your wallet...</Text>
-            ) : transactions.length > 0 ? (
-              transactions.map(tx => <TransactionCard key={tx.id} transaction={tx} />)
-            ) : (
-              <EmptyState 
-                icon="receipt-outline" 
-                title="No Transactions" 
-                description="You haven't made any payments yet. Tap 'Payments' to get started." 
-              >
-                <Button 
-                  title="Make Payment"
-                  onPress={() => router.push("/payments")} 
-                />
-              </EmptyState>
-            )}
-          </View>
-        </>
-      )}
+      <View style={styles.listContainer}>
+        {isLoading && !refreshing ? (
+          <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>Updating your wallet...</Text>
+        ) : (transactions ?? []).length > 0 ? (
+          (transactions ?? []).map(tx => <TransactionCard key={tx.id} transaction={tx} />)
+        ) : (
+          <EmptyState 
+            icon="receipt-outline" 
+            title="No Transactions" 
+            description="You haven't made any payments yet. Tap 'Payments' to get started." 
+          >
+            <Button 
+              title="Make Payment"
+              onPress={() => router.push("/payments")} 
+            />
+          </EmptyState>
+        )}
+      </View>
     </ScreenWrapper>
   );
 };
+
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -222,9 +242,26 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
     paddingBottom: 100,
   },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  offlineBadge: {
+    backgroundColor: '#FF3B30',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  offlineBadgeText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '800',
+  },
   statusText: {
     textAlign: 'center',
     marginTop: Spacing.four,
     fontSize: 14,
   },
 });
+
