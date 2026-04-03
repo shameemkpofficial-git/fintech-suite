@@ -1,0 +1,17 @@
+{
+  "auth": {
+    "title": "FintechSuite",
+    "subtitle": "Secure your financial future.",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "e.g. +91 9876543210",
+    "getStarted": "Get Started",
+    "biometricLogin": "Login with Biometrics",
+    "biometricPrompt": "Login to FintechSuite",
+    "errorTitle": "Authentication Error",
+    "errorMessage": "Could not verify your identity."
+  },
+  "common": {
+    "secureSession": "Secure Session",
+    "loading": "Loading..."
+  }
+}

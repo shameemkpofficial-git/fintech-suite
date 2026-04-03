@@ -26,6 +26,10 @@ export const Colors = {
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
     tint: APP_CONFIG.theme.primaryLight,
+    success: '#34C759',
+    danger: '#FF3B30',
+    warning: '#FFCC00',
+    glass: 'rgba(255, 255, 255, 0.7)',
   },
   dark: {
     text: '#ffffff',
@@ -34,6 +38,10 @@ export const Colors = {
     backgroundSelected: '#2C2C2E',
     textSecondary: '#8E8E93',
     tint: APP_CONFIG.theme.primaryDark,
+    success: '#32D74B',
+    danger: '#FF453A',
+    warning: '#FFD60A',
+    glass: 'rgba(0, 0, 0, 0.5)',
   },
 };
 

@@ -1,13 +1,16 @@
 import { Stack } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { OfflineBanner, UpdateBanner } from "../src/shared/components";
+import { OfflineBanner, UpdateBanner, AppBlurGuard } from "../src/shared/components";
+import '../src/shared/i18n';
 
 export default function Layout() {
   return (
     <SafeAreaProvider>
-      <OfflineBanner />
-      <UpdateBanner />
-      <Stack screenOptions={{ headerShown: false }} />
+      <AppBlurGuard>
+        <OfflineBanner />
+        <UpdateBanner />
+        <Stack screenOptions={{ headerShown: false }} />
+      </AppBlurGuard>
     </SafeAreaProvider>
   );
 }

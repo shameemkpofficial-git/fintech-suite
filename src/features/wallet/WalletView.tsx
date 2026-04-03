@@ -3,15 +3,21 @@ import { View, Text, StyleSheet, RefreshControl, TouchableOpacity } from "react-
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
-import { ScreenWrapper } from "@/shared/components/ScreenWrapper";
-import { EmptyState } from "@/shared/components/EmptyState";
-import { Button } from "@/shared/components/Button";
+import { 
+  ScreenWrapper, 
+  EmptyState, 
+  Button, 
+  OfflineBanner, 
+  AnimatedCard, 
+  AppBlurGuard 
+} from "@/shared/components";
 import { Colors, Spacing } from "@/shared/constants/theme";
 import { useColorScheme } from "@/shared/hooks/use-color-scheme";
 import { useFintech } from "@/shared/hooks/useFintech";
 import { useAuthStore } from "@/features/auth/useAuthStore";
 import { useSafeRequest } from "@/shared/hooks/useSafeRequest";
-import { OfflineBanner } from "@/shared/components/OfflineBanner";
+import { useTranslation } from "react-i18next";
+import { Transaction } from "@/shared/api/FintechProvider";
 import { TransactionCard } from "./components/TransactionCard";
 
 /**
@@ -19,6 +25,7 @@ import { TransactionCard } from "./components/TransactionCard";
  * Self-contained logic for the financial dashboard.
  */
 export const WalletView = () => {
+  const { t } = useTranslation();
   const fintech = useFintech();
   const logout = useAuthStore((s) => s.logout);
   const colorScheme = useColorScheme() === 'dark' ? 'dark' : 'light';
@@ -96,7 +103,7 @@ export const WalletView = () => {
         </Text>
       </View>
 
-      <View style={[styles.card, { backgroundColor: '#007AFF' }]}>
+      <AnimatedCard variant="glass" style={StyleSheet.flatten([styles.card, { backgroundColor: '#007AFF' }])}>
         <View style={styles.cardHeader}>
           <Text style={styles.cardTitle}>FintechSuite Premium</Text>
           <Ionicons name="card-outline" size={24} color="#FFF" />
@@ -115,7 +122,7 @@ export const WalletView = () => {
             <Text style={styles.cardValue}>09/28</Text>
           </View>
         </View>
-      </View>
+      </AnimatedCard>
 
       <View style={styles.historyHeader}>
         <View style={styles.statusRow}>
@@ -129,7 +136,11 @@ export const WalletView = () => {
         {isLoading && !refreshing ? (
           <Text style={[styles.statusText, { color: themeColors.textSecondary }]}>Updating your wallet...</Text>
         ) : (transactions ?? []).length > 0 ? (
-          (transactions ?? []).map(tx => <TransactionCard key={tx.id} transaction={tx} />)
+          (transactions ?? []).map((tx, index) => (
+            <AnimatedCard key={tx.id} variant="outline" delay={index * 100} style={{ padding: 0 }}>
+              <TransactionCard transaction={tx} />
+            </AnimatedCard>
+          ))
         ) : (
           <EmptyState 
             icon="receipt-outline" 

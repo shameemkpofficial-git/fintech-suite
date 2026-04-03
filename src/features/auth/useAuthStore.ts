@@ -6,7 +6,8 @@ import { encryptData, decryptData } from "@/shared/utils/crypto";
 interface AuthState {
   token: string | null;
   expiresAt: number | null;
-  setToken: (token: string, expiresInMs?: number) => void;
+  lastPhone: string | null;
+  setToken: (token: string, phone?: string, expiresInMs?: number) => void;
   logout: () => void;
   isTokenExpired: () => boolean;
   _hasHydrated: boolean;
@@ -38,10 +39,11 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       token: null,
       expiresAt: null,
+      lastPhone: null,
       _hasHydrated: false,
 
-      setToken: (token, expiresInMs = 24 * 60 * 60 * 1000) => 
-        set({ token, expiresAt: Date.now() + expiresInMs }),
+      setToken: (token, phone, expiresInMs = 24 * 60 * 60 * 1000) => 
+        set({ token, expiresAt: Date.now() + expiresInMs, lastPhone: phone || get().lastPhone }),
       
       logout: () => set({ token: null, expiresAt: null }),
       
