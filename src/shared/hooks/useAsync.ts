@@ -1,29 +1,63 @@
-import { useState, useCallback } from 'react';
+import { useReducer, useCallback } from 'react';
+
+type AsyncState<T> = {
+  loading: boolean;
+  error: string | null;
+  data: T | null;
+};
+
+type AsyncAction<T> =
+  | { type: 'START' }
+  | { type: 'SUCCESS'; payload: T }
+  | { type: 'FAILURE'; payload: string }
+  | { type: 'SET_DATA'; payload: T | null };
+
+const asyncReducer = <T>(state: AsyncState<T>, action: AsyncAction<T>): AsyncState<T> => {
+  switch (action.type) {
+    case 'START':
+      return { ...state, loading: true, error: null };
+    case 'SUCCESS':
+      return { ...state, loading: false, data: action.payload, error: null };
+    case 'FAILURE':
+      return { ...state, loading: false, error: action.payload };
+    case 'SET_DATA':
+      return { ...state, data: action.payload };
+    default:
+      return state;
+  }
+};
 
 /**
  * Standardized hook for handling asynchronous operations.
- * Manages loading, error, and data states in a clean, reusable pattern.
+ * Manages loading, error, and data states using useReducer for atomic updates.
  */
 export const useAsync = <T>(asyncFunction: (...args: any[]) => Promise<T>) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<T | null>(null);
+  const [state, dispatch] = useReducer(asyncReducer<T>, {
+    loading: false,
+    error: null,
+    data: null,
+  });
 
   const execute = useCallback(async (...args: any[]) => {
-    setLoading(true);
-    setError(null);
+    dispatch({ type: 'START' });
     try {
       const response = await asyncFunction(...args);
-      setData(response);
+      dispatch({ type: 'SUCCESS', payload: response });
       return response;
     } catch (err: any) {
       const message = err.message || 'An unexpected error occurred';
-      setError(message);
+      dispatch({ type: 'FAILURE', payload: message });
       throw err;
-    } finally {
-      setLoading(false);
     }
   }, [asyncFunction]);
 
-  return { execute, loading, error, data, setData };
+  const setData = (data: T | null) => dispatch({ type: 'SET_DATA', payload: data });
+
+  return { 
+    execute, 
+    loading: state.loading, 
+    error: state.error, 
+    data: state.data, 
+    setData 
+  };
 };

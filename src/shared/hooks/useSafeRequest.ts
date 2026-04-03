@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { useAsync } from './useAsync';
 import { useNetwork } from './useNetwork';
 import { useFintechStore } from './useFintechStore';
@@ -11,6 +11,7 @@ interface SafeRequestOptions<T> {
 
 /**
  * Enhanced async hook with offline fallback, retries, and encrypted caching.
+ * Optimized with useRef to prevent unnecessary re-renders when options change.
  */
 export const useSafeRequest = <T>(
   asyncFunction: (...args: any[]) => Promise<T>,
@@ -21,12 +22,21 @@ export const useSafeRequest = <T>(
   const { execute: baseExecute, loading, error, data: baseData, setData } = useAsync(asyncFunction);
 
   const [isOfflineData, setIsOfflineData] = useState(false);
+  
+  // Use a ref to store options to avoid them being a dependency of the callback
+  const optionsRef = useRef(options);
+  
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
 
   const execute = useCallback(async (...args: any[]) => {
+    const currentOptions = optionsRef.current;
+    
     // 1. Offline Fallback
-    if (!isConnected && options.cacheKey) {
-      console.log(`[SafeRequest] Offline. Resolving ${options.cacheKey} from cache.`);
-      const cachedData = options.cacheKey === 'balance' ? balance : transactions;
+    if (!isConnected && currentOptions.cacheKey) {
+      console.log(`[SafeRequest] Offline. Resolving ${currentOptions.cacheKey} from cache.`);
+      const cachedData = currentOptions.cacheKey === 'balance' ? balance : transactions;
       if (cachedData !== null) {
         setIsOfflineData(true);
         setData(cachedData as T);
@@ -36,18 +46,18 @@ export const useSafeRequest = <T>(
 
     // 2. Online Execution with Retries
     let lastError;
-    const maxRetries = options.maxRetries ?? 2;
+    const maxRetries = currentOptions.maxRetries ?? 2;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const result = await baseExecute(...args);
         
         // 3. Update Cache on Success
-        if (options.cacheKey === 'balance') setBalance(result as any);
-        if (options.cacheKey === 'transactions') setTransactions(result as any);
+        if (currentOptions.cacheKey === 'balance') setBalance(result as any);
+        if (currentOptions.cacheKey === 'transactions') setTransactions(result as any);
         
         setIsOfflineData(false);
-        if (options.onSuccess) options.onSuccess(result);
+        if (currentOptions.onSuccess) currentOptions.onSuccess(result);
         return result;
       } catch (err) {
         lastError = err;
@@ -60,8 +70,8 @@ export const useSafeRequest = <T>(
     }
 
     // 4. Final Fallback if all retries failed (even if online)
-    if (options.cacheKey) {
-      const cachedData = options.cacheKey === 'balance' ? balance : transactions;
+    if (currentOptions.cacheKey) {
+      const cachedData = currentOptions.cacheKey === 'balance' ? balance : transactions;
       if (cachedData !== null) {
         setIsOfflineData(true);
         setData(cachedData as T);
@@ -70,7 +80,7 @@ export const useSafeRequest = <T>(
     }
 
     throw lastError;
-  }, [isConnected, options.cacheKey, balance, transactions, baseExecute, setData, setBalance, setTransactions]);
+  }, [isConnected, balance, transactions, baseExecute, setData, setBalance, setTransactions]);
 
   return {
     execute,
